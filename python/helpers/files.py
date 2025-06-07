@@ -2,6 +2,7 @@ from fnmatch import fnmatch
 import json
 import os, re
 import base64
+from typing import Dict, List, Any, Optional, Union
 
 import re
 import shutil
@@ -258,7 +259,7 @@ def is_in_base_dir(path: str):
     return os.path.commonpath([abs_path, base_dir]) == base_dir
 
 
-def get_subdirectories(relative_path: str, include: str | list[str] = "*", exclude: str | list[str] | None = None):
+def get_subdirectories(relative_path: str, include: Union[str, List[str]] = "*", exclude: Union[str, List[str], None] = None):
     abs_path = get_abs_path(relative_path)
     if not os.path.exists(abs_path):
         return []

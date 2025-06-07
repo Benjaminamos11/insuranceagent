@@ -1,0 +1,25 @@
+{
+  "theme": "swiss_insurance",
+  "branding": {
+    "show_agent_zero_logo": false,
+    "custom_logo": "assets/branding/logo.png",
+    "company_name": "Swiss Insurance Expert",
+    "primary_color": "#38666f",
+    "secondary_color": "#724d69"
+  },
+  "features": {
+    "multi_agent_view": true,
+    "workflow_visualization": true,
+    "tool_usage_tracking": true,
+    "performance_metrics": true
+  },
+  "language": {
+    "default": "de",
+    "supported": [
+      "de",
+      "fr",
+      "it",
+      "en"
+    ]
+  }
+}

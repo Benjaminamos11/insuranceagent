@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  insuragent:
+    container_name: insuragent-swiss
+    image: frdel/agent-zero:latest
+    restart: unless-stopped
+    ports:
+      - "5000:80"
+      - "22:22"
+    volumes:
+      - ./agent-zero:/a0
+      - ./prompts:/a0/prompts
+      - ./webui:/a0/webui
+    environment:
+      - PROMPTS_SUBDIR=swiss_insurance
+      - CLIENT_MODE_ENABLED=true
+      - DEFAULT_LANGUAGE=de
+      - WEB_UI_HOST=0.0.0.0
+      - WEB_UI_PORT=80
+      - RFC_PASSWORD=insuragent_docker_2024
+      - PYTHONUNBUFFERED=1
+      # Add your API keys here
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY:-}
+    networks:
+      - insuragent-network
+
+networks:
+  insuragent-network:
+    driver: bridge 

@@ -1,7 +1,9 @@
 from abc import abstractmethod
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Dict, Union
+if TYPE_CHECKING:
+    from agent import Agent
 
-from agent import Agent
 from python.helpers.print_style import PrintStyle
 
 
@@ -12,7 +14,7 @@ class Response:
 
 class Tool:
 
-    def __init__(self, agent: Agent, name: str, method: str | None, args: dict[str,str], message: str, **kwargs) -> None:
+    def __init__(self, agent: "Agent", name: str, method: Union[str, None], args: Dict[str,str], message: str, **kwargs) -> None:
         self.agent = agent
         self.name = name
         self.method = method

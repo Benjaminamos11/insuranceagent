@@ -1,0 +1,78 @@
+{
+  "insurance_tools": {
+    "email_designer": {
+      "enabled": true,
+      "class": "EmailDesigner",
+      "file": "python/tools/email_designer.py",
+      "capabilities": [
+        "email_creation",
+        "html_generation",
+        "mobile_responsive"
+      ]
+    },
+    "web_page_builder": {
+      "enabled": true,
+      "class": "WebPageBuilder",
+      "file": "python/tools/web_page_builder.py",
+      "capabilities": [
+        "landing_pages",
+        "seo_optimization",
+        "responsive_design"
+      ]
+    },
+    "social_media_creator": {
+      "enabled": true,
+      "class": "SocialMediaCreator",
+      "file": "python/tools/social_media_creator.py",
+      "capabilities": [
+        "social_content",
+        "platform_optimization",
+        "hashtag_generation"
+      ]
+    },
+    "insurance_rate_comparison": {
+      "enabled": true,
+      "class": "InsuranceRateComparison",
+      "file": "python/tools/insurance_rate_comparison.py",
+      "capabilities": [
+        "rate_comparison",
+        "policy_analysis",
+        "savings_calculation"
+      ]
+    }
+  },
+  "agent_zero_tools": {
+    "browser_agent": {
+      "enabled": true,
+      "capabilities": [
+        "web_browsing",
+        "screenshot_capture",
+        "web_automation"
+      ]
+    },
+    "vision_load": {
+      "enabled": true,
+      "capabilities": [
+        "image_analysis",
+        "ocr",
+        "visual_content_analysis"
+      ]
+    },
+    "search_engine": {
+      "enabled": true,
+      "capabilities": [
+        "web_search",
+        "real_time_data",
+        "market_research"
+      ]
+    },
+    "code_execution_tool": {
+      "enabled": true,
+      "capabilities": [
+        "data_analysis",
+        "chart_generation",
+        "automation"
+      ]
+    }
+  }
+}
