@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Zero - Admin Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #1a1a1a; 
+            color: #fff; 
+            overflow: hidden;
+        }
+        
+        .admin-frame {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            border: none;
+            background: #1a1a1a;
+        }
+        
+        .admin-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .admin-title {
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .frame-container {
+            margin-top: 50px;
+            height: calc(100vh - 50px);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div class="admin-title">🔧 Agent Zero - Admin Dashboard</div>
+        <div class="admin-nav">
+            <a href="/login.html" class="nav-btn">🚀 Client Interface</a>
+            <a href="/settings_get" class="nav-btn">⚙️ Settings</a>
+            <a href="/" class="nav-btn">🏠 Home</a>
+        </div>
+    </div>
+    
+    <div class="frame-container">
+        <iframe id="adminFrame" class="admin-frame" src="/dashboard"></iframe>
+    </div>
+
+    <script>
+        // Handle iframe navigation and provide fallbacks
+        document.addEventListener('DOMContentLoaded', function() {
+            const frame = document.getElementById('adminFrame');
+            
+            // Try to load the original Agent Zero interface
+            // First try /dashboard, then fallback to other routes
+            const tryRoutes = ['/dashboard', '/chat', '/settings', '/api/health'];
+            let routeIndex = 0;
+            
+            function tryNextRoute() {
+                if (routeIndex < tryRoutes.length) {
+                    frame.src = tryRoutes[routeIndex];
+                    routeIndex++;
+                } else {
+                    // If all routes fail, show a configuration page
+                    frame.srcdoc = `
+                        <html>
+                        <head><title>Admin Configuration</title></head>
+                        <body style="font-family: Arial; padding: 40px; background: #1a1a1a; color: white;">
+                            <h1>🔧 Agent Zero Admin Configuration</h1>
+                            <h2>Quick Configuration Links:</h2>
+                            <div style="margin: 20px 0;">
+                                <a href="/settings_get" style="color: #4CAF50; display: block; margin: 10px 0;">⚙️ General Settings</a>
+                                <a href="/api/health" style="color: #4CAF50; display: block; margin: 10px 0;">🏥 Health Check</a>
+                                <a href="/message" style="color: #4CAF50; display: block; margin: 10px 0;">💬 Test Chat</a>
+                            </div>
+                            
+                            <h2>🔑 API Configuration</h2>
+                            <p>Configure your API keys and MCP servers here:</p>
+                            <ul style="line-height: 1.8;">
+                                <li><strong>OpenAI API Key:</strong> For main AI functionality</li>
+                                <li><strong>MCP Servers:</strong> Email, insurance tools, etc.</li>
+                                <li><strong>Authentication:</strong> Admin login credentials</li>
+                                <li><strong>Swiss Insurance Settings:</strong> FINMA compliance, Swiss providers</li>
+                            </ul>
+                            
+                            <h2>🇨🇭 Insurance Agent Features</h2>
+                            <p>Your Swiss Insurance Agent includes:</p>
+                            <ul style="line-height: 1.8;">
+                                <li>✅ German language interface</li>
+                                <li>✅ FINMA-compliant responses</li>
+                                <li>✅ Swiss insurance provider database</li>
+                                <li>✅ Email automation (MCP servers)</li>
+                                <li>✅ Rate comparison tools</li>
+                                <li>✅ Professional client communication</li>
+                            </ul>
+                            
+                            <div style="margin-top: 40px; padding: 20px; background: #2d3748; border-radius: 8px;">
+                                <h3>🚀 Access Client Interfaces:</h3>
+                                <a href="/login.html" style="color: #4CAF50; margin-right: 20px;">New Insuragent Experience</a>
+                                <a href="/client.html" style="color: #4CAF50; margin-right: 20px;">Swiss Client Interface</a>
+                                <a href="/workspace.html" style="color: #4CAF50;">Professional Workspace</a>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+                }
+            }
+            
+            frame.onerror = tryNextRoute;
+            frame.onload = function() {
+                // Frame loaded successfully
+                console.log('Admin interface loaded');
+            };
+            
+            // Start with first route
+            tryNextRoute();
+        });
+    </script>
+</body>
+</html> 

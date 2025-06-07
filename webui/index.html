@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insuragent - Redirecting...</title>
+    <title>Insuragent - Choose Interface</title>
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
     <style>
         body {
@@ -18,7 +18,7 @@
         }
         .container {
             text-align: center;
-            max-width: 600px;
+            max-width: 800px;
             padding: 2rem;
         }
         .logo {
@@ -37,46 +37,70 @@
             font-weight: 800;
             margin-bottom: 1rem;
         }
-        .buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
+        .interface-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .interface-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+        .interface-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .card-description {
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .card-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+        .card-features li {
+            padding: 0.3rem 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
         }
         .btn {
+            display: inline-block;
             padding: 1rem 2rem;
-            border: none;
+            background: white;
+            color: #38666f;
             border-radius: 12px;
             font-weight: 600;
             text-decoration: none;
+            margin-top: 1rem;
             transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .btn-primary {
-            background: white;
-            color: #38666f;
-        }
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         .btn:hover {
-            transform: translateY(-2px);
+            transform: scale(1.05);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .divider {
+            margin: 2rem 0;
+            opacity: 0.3;
         }
     </style>
 </head>
@@ -87,41 +111,61 @@
                 <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
             </svg>
         </div>
-        <h1>Insuragent</h1>
-        <p style="margin-bottom: 2rem; opacity: 0.9;">Welcome to your AI Insurance Co-Pilot</p>
+        <h1>Insuragent System</h1>
+        <p style="margin-bottom: 2rem; opacity: 0.9; font-size: 1.2rem;">Choose your interface level</p>
         
-        <div id="loading" style="display: none;">
-            <div class="spinner"></div>
-            <p style="margin-top: 1rem;">Redirecting to Insuragent...</p>
+        <div class="interface-grid">
+            <!-- Admin Interface -->
+            <a href="/admin.html" class="interface-card">
+                <div class="card-icon">🔧</div>
+                <div class="card-title">Admin Dashboard</div>
+                <div class="card-description">
+                    Full Agent Zero configuration and management interface for system administrators.
+                </div>
+                <ul class="card-features">
+                    <li>✅ Configure API keys & MCP servers</li>
+                    <li>✅ Manage Swiss insurance settings</li>
+                    <li>✅ Set up authentication & security</li>
+                    <li>✅ Monitor system performance</li>
+                    <li>✅ Configure prompts & knowledge base</li>
+                </ul>
+                <div class="btn">Access Admin Dashboard</div>
+            </a>
+
+            <!-- Client Interfaces -->
+            <a href="/login.html" class="interface-card">
+                <div class="card-icon">🇨🇭</div>
+                <div class="card-title">Insurance Agent Interface</div>
+                <div class="card-description">
+                    Professional Swiss insurance agent workspace with AI assistance.
+                </div>
+                <ul class="card-features">
+                    <li>✅ Beautiful German interface</li>
+                    <li>✅ FINMA-compliant responses</li>
+                    <li>✅ Email automation & templates</li>
+                    <li>✅ Rate comparison tools</li>
+                    <li>✅ Client communication suite</li>
+                </ul>
+                <div class="btn">Start Insurance Work</div>
+            </a>
         </div>
-        
-        <div id="options">
-            <p style="margin-bottom: 2rem;">Choose your interface:</p>
-            <div class="buttons">
-                <a href="/login.html" class="btn btn-primary">
-                    🚀 New Insuragent Experience
-                </a>
-                <a href="/client.html" class="btn btn-secondary">
-                    💼 Swiss Client Interface
-                </a>
-            </div>
-            <p style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.8;">
-                Or access the <a href="/" style="color: white; text-decoration: underline;">Admin Dashboard</a>
-            </p>
+
+        <div class="divider">
+            <hr style="border: 1px solid rgba(255,255,255,0.2);">
+        </div>
+
+        <p style="opacity: 0.7; font-size: 0.9rem; margin-top: 2rem;">
+            <strong>Admin:</strong> Configure the system, manage settings, API keys, and MCP servers<br>
+            <strong>Client:</strong> Use the configured insurance agent for daily work
+        </p>
+
+        <!-- Quick Access Links -->
+        <div style="margin-top: 2rem; opacity: 0.6;">
+            <p style="font-size: 0.8rem;">Quick access:</p>
+            <a href="/client.html" style="color: white; margin: 0 10px;">Swiss Client</a> |
+            <a href="/workspace.html" style="color: white; margin: 0 10px;">Workspace</a> |
+            <a href="/settings_get" style="color: white; margin: 0 10px;">Settings</a>
         </div>
     </div>
-
-    <script>
-        // Auto-redirect to new experience after 3 seconds if no choice made
-        setTimeout(() => {
-            if (document.getElementById('options').style.display !== 'none') {
-                document.getElementById('options').style.display = 'none';
-                document.getElementById('loading').style.display = 'block';
-                setTimeout(() => {
-                    window.location.href = '/login.html';
-                }, 1000);
-            }
-        }, 10000);
-    </script>
 </body>
 </html>
