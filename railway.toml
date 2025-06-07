@@ -1,0 +1,23 @@
+[build]
+  builder = "DOCKERFILE"
+
+[deploy]
+  healthcheckPath = "/health"
+  healthcheckTimeout = 300
+  restartPolicyType = "ON_FAILURE"
+  replicas = 1
+
+[env]
+  # These will be set in Railway dashboard
+  # OPENAI_API_KEY = ""
+  # SUPABASE_URL = ""
+  # SUPABASE_SERVICE_KEY = ""
+  # STRIPE_SECRET_KEY = ""
+  
+  # Swiss Insurance Agent Configuration
+  AGENT_NAME = "Swiss Insurance Expert"
+  FINMA_COMPLIANCE_ENABLED = "true"
+  DEFAULT_LANGUAGE = "de"
+  SUPPORTED_LANGUAGES = "de,fr,it,en"
+  WEB_UI_PORT = "8080"
+  WEB_UI_HOST = "0.0.0.0" 
