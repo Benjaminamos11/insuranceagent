@@ -2,7 +2,7 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "nixpacks",
-    "buildCommand": "pip install -r requirements.txt"
+    "buildCommand": "pip install -r requirements.minimal.txt --no-cache-dir"
   },
   "deploy": {
     "startCommand": "python run_ui.py",
@@ -16,7 +16,10 @@
         "WEB_UI_HOST": "0.0.0.0",
         "PROMPTS_SUBDIR": "swiss_insurance",
         "CLIENT_MODE_ENABLED": "true",
-        "DEFAULT_LANGUAGE": "de"
+        "DEFAULT_LANGUAGE": "de",
+        "PYTHONUNBUFFERED": "1",
+        "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+        "PIP_NO_CACHE_DIR": "1"
       }
     }
   }

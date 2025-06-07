@@ -144,6 +144,37 @@ coverage.xml
 .dmypy.json
 dmypy.json
 
+# DEPLOYMENT SIZE OPTIMIZATION - Exclude large unnecessary files
+docs/
+docker/
+.github/
+examples/
+samples/
+tests/
+__tests__/
+*.md
+!README.md
+!README_Swiss_Insurance_Agent.md
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+*.gif
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.pdf
+*.zip
+*.tar.gz
+*.dmg
+
+# Development tools
+.vscode/
+.cursor/
+*.code-workspace
+
 # Ignore common unwanted files globally
 **/.DS_Store
 **/__pycache__/
