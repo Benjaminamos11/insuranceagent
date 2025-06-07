@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insuragent - Your AI Insurance Co-Pilot</title>
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+    <style>
+        /* Custom Insuragent Brand Colors */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #38666f 0%, #724d69 100%);
+            --secondary-gradient: linear-gradient(135deg, #7e9498 0%, #e7a7bb 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Glassmorphism Effects */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Mesomorphism Effects */
+        .meso {
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            box-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px #ffffff;
+            border-radius: 20px;
+        }
+        
+        .meso-inset {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            box-shadow: inset 20px 20px 60px #d9d9d9, inset -20px -20px 60px #ffffff;
+        }
+        
+        /* Primary Gradient Background */
+        .bg-primary-gradient {
+            background: var(--primary-gradient);
+        }
+        
+        .bg-secondary-gradient {
+            background: var(--secondary-gradient);
+        }
+        
+        /* Mode Icons */
+        .mode-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .mode-icon:hover {
+            transform: scale(1.1);
+            filter: brightness(1.2);
+        }
+        
+        /* Chat Animations */
+        .message-appear {
+            animation: messageSlideIn 0.5s ease-out;
+        }
+        
+        @keyframes messageSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Canvas Transitions */
+        .canvas-content {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Sidebar Animation */
+        .sidebar-expanded {
+            width: 280px;
+        }
+        
+        .sidebar-collapsed {
+            width: 80px;
+        }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen" x-data="insuragentWorkspace()">
+    <!-- Main Workspace Container -->
+    <div class="h-screen flex overflow-hidden">
+        
+        <!-- Left Column: Mode Selector Sidebar -->
+        <aside 
+            :class="sidebarExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'" 
+            class="glass transition-all duration-300 ease-in-out flex flex-col border-r border-white/20"
+        >
+            <!-- Insuragent Logo -->
+            <div class="p-6 border-b border-white/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary-gradient rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                        </svg>
+                    </div>
+                    <div x-show="sidebarExpanded" class="transition-opacity duration-300">
+                        <h1 class="text-xl font-bold text-gray-800">Insuragent</h1>
+                        <p class="text-sm text-gray-600">AI Co-Pilot</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mode Selector -->
+            <nav class="flex-1 p-4 space-y-2">
+                <!-- Dashboard Mode -->
+                <button 
+                    @click="switchMode('dashboard')"
+                    :class="currentMode === 'dashboard' ? 'bg-primary-gradient text-white' : 'text-gray-700 hover:bg-white/50'"
+                    class="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 mode-icon"
+                >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                    </svg>
+                    <span x-show="sidebarExpanded" class="font-medium">Dashboard</span>
+                </button>
+                
+                <!-- Offer Analysis Mode -->
+                <button 
+                    @click="switchMode('offer_analysis')"
+                    :class="currentMode === 'offer_analysis' ? 'bg-primary-gradient text-white' : 'text-gray-700 hover:bg-white/50'"
+                    class="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 mode-icon"
+                >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                        <path d="M14 2v6h6M16 13H8m8 4H8m2-8H8"/>
+                    </svg>
+                    <span x-show="sidebarExpanded" class="font-medium">Angebots-Analyse</span>
+                </button>
+                
+                <!-- Client Communication Mode -->
+                <button 
+                    @click="switchMode('communication')"
+                    :class="currentMode === 'communication' ? 'bg-primary-gradient text-white' : 'text-gray-700 hover:bg-white/50'"
+                    class="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 mode-icon"
+                >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <path d="M22 6l-10 7L2 6"/>
+                    </svg>
+                    <span x-show="sidebarExpanded" class="font-medium">Kommunikation</span>
+                </button>
+                
+                <!-- Marketing Mode -->
+                <button 
+                    @click="switchMode('marketing')"
+                    :class="currentMode === 'marketing' ? 'bg-primary-gradient text-white' : 'text-gray-700 hover:bg-white/50'"
+                    class="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 mode-icon"
+                >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+                    </svg>
+                    <span x-show="sidebarExpanded" class="font-medium">Marketing</span>
+                </button>
+            </nav>
+            
+            <!-- Sidebar Toggle -->
+            <div class="p-4 border-t border-white/20">
+                <button 
+                    @click="sidebarExpanded = !sidebarExpanded"
+                    class="w-full flex items-center justify-center p-2 rounded-lg text-gray-700 hover:bg-white/50 transition-all duration-200"
+                >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Middle Column: Command Center (Chat Interface) -->
+        <main class="flex-1 flex flex-col bg-white/50 backdrop-blur-sm">
+            <!-- Chat Header -->
+            <header class="glass border-b border-white/20 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800" x-text="getModeTitle()"></h2>
+                        <p class="text-sm text-gray-600" x-text="getModeDescription()"></p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="meso p-2 rounded-lg text-gray-700 hover:text-blue-600 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </button>
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm text-gray-600">AI Online</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Chat Messages -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
+                <!-- Welcome Message -->
+                <div x-show="messages.length === 0" class="text-center py-12">
+                    <div class="meso inline-block p-8 rounded-2xl">
+                        <div class="w-16 h-16 bg-primary-gradient rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Willkommen bei Insuragent</h3>
+                        <p class="text-gray-600 mb-6">Ihr KI-gestützter Versicherungsassistent ist bereit</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <button 
+                                @click="sendQuickMessage('Analysiere diese zwei Krankenversicherungsangebote')"
+                                class="meso px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-primary-gradient hover:text-white transition-all duration-200"
+                            >
+                                📊 Angebote vergleichen
+                            </button>
+                            <button 
+                                @click="sendQuickMessage('Erstelle eine professionelle E-Mail für einen neuen Kunden')"
+                                class="meso px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-primary-gradient hover:text-white transition-all duration-200"
+                            >
+                                ✉️ E-Mail erstellen
+                            </button>
+                            <button 
+                                @click="sendQuickMessage('Plane meine LinkedIn-Posts für nächste Woche')"
+                                class="meso px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-primary-gradient hover:text-white transition-all duration-200"
+                            >
+                                📱 Marketing planen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <template x-for="message in messages" :key="message.id">
+                    <div 
+                        :class="message.type === 'user' ? 'ml-auto' : 'mr-auto'"
+                        class="max-w-xl message-appear"
+                    >
+                        <div 
+                            :class="message.type === 'user' ? 'bg-primary-gradient text-white' : 'meso'"
+                            class="p-4 rounded-2xl shadow-lg"
+                        >
+                            <p class="text-sm leading-relaxed" x-text="message.content"></p>
+                            <div class="flex items-center gap-2 mt-2 text-xs opacity-70">
+                                <span x-text="message.timestamp"></span>
+                                <div x-show="message.type === 'ai'" class="flex items-center gap-1">
+                                    <div class="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+                                    <span>AI</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Typing Indicator -->
+                <div x-show="isTyping" class="max-w-xl">
+                    <div class="meso p-4 rounded-2xl">
+                        <div class="flex items-center gap-2">
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            </div>
+                            <span class="text-sm text-gray-600">AI denkt nach...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Input -->
+            <div class="glass border-t border-white/20 p-6">
+                <div class="flex gap-3">
+                    <!-- File Upload -->
+                    <label class="meso p-3 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors">
+                        <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                        <input type="file" class="hidden" @change="handleFileUpload" multiple accept=".pdf,.doc,.docx">
+                    </label>
+                    
+                    <!-- Message Input -->
+                    <div class="flex-1 meso-inset rounded-lg p-1">
+                        <textarea 
+                            x-model="currentMessage"
+                            @keydown.enter.prevent="sendMessage()"
+                            placeholder="Beschreiben Sie, was Sie erreichen möchten..."
+                            class="w-full p-3 bg-transparent resize-none focus:outline-none"
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    
+                    <!-- Send Button -->
+                    <button 
+                        @click="sendMessage()"
+                        :disabled="!currentMessage.trim() || isTyping"
+                        class="bg-primary-gradient text-white p-3 rounded-lg hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all duration-200"
+                    >
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Quick Actions for Current Mode -->
+                <div x-show="currentMode !== 'dashboard'" class="flex gap-2 mt-3">
+                    <template x-for="action in getQuickActions()" :key="action.text">
+                        <button 
+                            @click="sendQuickMessage(action.prompt)"
+                            class="text-xs px-3 py-1 rounded-full bg-white/50 text-gray-700 hover:bg-white transition-colors"
+                            x-text="action.text"
+                        ></button>
+                    </template>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Right Column: Dynamic Canvas -->
+        <section class="w-1/3 glass border-l border-white/20 flex flex-col">
+            <!-- Canvas Header -->
+            <header class="border-b border-white/20 p-6">
+                <h3 class="text-lg font-bold text-gray-800" x-text="getCanvasTitle()"></h3>
+                <p class="text-sm text-gray-600">Live-Vorschau und Ausgabe</p>
+            </header>
+            
+            <!-- Canvas Content -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 canvas-content">
+                <!-- Dashboard View -->
+                <div x-show="currentMode === 'dashboard'" class="space-y-6">
+                    <div class="meso p-6 rounded-xl">
+                        <h4 class="font-bold text-gray-800 mb-4">Aktivitätsübersicht</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Heute analysierte Angebote</span>
+                                <span class="font-bold text-blue-600">7</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Gesendete E-Mails</span>
+                                <span class="font-bold text-green-600">23</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Aktive Leads</span>
+                                <span class="font-bold text-purple-600">12</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="meso p-6 rounded-xl">
+                        <h4 class="font-bold text-gray-800 mb-4">Kürzliche Aktivitäten</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium">Angebot analysiert</p>
+                                    <p class="text-xs text-gray-600">vor 2 Stunden</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Offer Analysis View -->
+                <div x-show="currentMode === 'offer_analysis'" class="space-y-6">
+                    <div class="meso p-6 rounded-xl">
+                        <h4 class="font-bold text-gray-800 mb-4">Vergleichsanalyse</h4>
+                        <div class="text-center text-gray-500 py-8">
+                            <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                            </svg>
+                            <p>Laden Sie Versicherungsangebote hoch, um eine detaillierte Analyse zu erhalten</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Communication View -->
+                <div x-show="currentMode === 'communication'" class="space-y-6">
+                    <div class="meso p-6 rounded-xl">
+                        <h4 class="font-bold text-gray-800 mb-4">E-Mail-Vorschau</h4>
+                        <div class="bg-white p-4 rounded-lg border">
+                            <div class="border-b pb-2 mb-3">
+                                <div class="text-sm text-gray-600">An: kunde@example.com</div>
+                                <div class="text-sm text-gray-600">Betreff: Ihr Versicherungsangebot</div>
+                            </div>
+                            <div class="prose prose-sm">
+                                <p>Live-Vorschau Ihrer E-Mail wird hier angezeigt...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Marketing View -->
+                <div x-show="currentMode === 'marketing'" class="space-y-6">
+                    <div class="meso p-6 rounded-xl">
+                        <h4 class="font-bold text-gray-800 mb-4">Content-Kalender</h4>
+                        <div class="grid grid-cols-7 gap-1 text-xs">
+                            <div class="text-center font-medium p-2">Mo</div>
+                            <div class="text-center font-medium p-2">Di</div>
+                            <div class="text-center font-medium p-2">Mi</div>
+                            <div class="text-center font-medium p-2">Do</div>
+                            <div class="text-center font-medium p-2">Fr</div>
+                            <div class="text-center font-medium p-2">Sa</div>
+                            <div class="text-center font-medium p-2">So</div>
+                            <!-- Calendar days would be populated here -->
+                            <template x-for="day in 35" :key="day">
+                                <div class="aspect-square p-1 hover:bg-blue-50 rounded cursor-pointer text-center">
+                                    <span x-text="day <= 30 ? day : ''"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Canvas Actions -->
+            <div class="border-t border-white/20 p-6">
+                <div class="flex gap-2">
+                    <button class="flex-1 bg-secondary-gradient text-white py-2 px-4 rounded-lg text-sm font-medium hover:scale-105 transition-transform">
+                        PDF exportieren
+                    </button>
+                    <button class="flex-1 meso py-2 px-4 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        Link teilen
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function insuragentWorkspace() {
+            return {
+                sidebarExpanded: true,
+                currentMode: 'dashboard',
+                messages: [],
+                currentMessage: '',
+                isTyping: false,
+                
+                switchMode(mode) {
+                    this.currentMode = mode;
+                    this.addMessage('system', `Gewechselt zu ${this.getModeTitle()}-Modus`);
+                },
+                
+                getModeTitle() {
+                    const titles = {
+                        dashboard: 'Dashboard',
+                        offer_analysis: 'Angebots-Analyse',
+                        communication: 'Kundenkommunikation',
+                        marketing: 'Marketing & Social Media'
+                    };
+                    return titles[this.currentMode] || 'Dashboard';
+                },
+                
+                getModeDescription() {
+                    const descriptions = {
+                        dashboard: 'Übersicht Ihrer Aktivitäten und Metriken',
+                        offer_analysis: 'Versicherungsangebote vergleichen und analysieren',
+                        communication: 'Professionelle E-Mails und Nachrichten erstellen',
+                        marketing: 'Social Media Content und Marketingmaterial planen'
+                    };
+                    return descriptions[this.currentMode] || '';
+                },
+                
+                getCanvasTitle() {
+                    const titles = {
+                        dashboard: 'Live Dashboard',
+                        offer_analysis: 'Vergleichsanalyse',
+                        communication: 'E-Mail Vorschau',
+                        marketing: 'Content Planner'
+                    };
+                    return titles[this.currentMode] || 'Ausgabe';
+                },
+                
+                getQuickActions() {
+                    const actions = {
+                        offer_analysis: [
+                            { text: 'Prämien vergleichen', prompt: 'Vergleiche die Prämien der hochgeladenen Angebote' },
+                            { text: 'Leistungen analysieren', prompt: 'Analysiere die Leistungsunterschiede' },
+                            { text: 'Empfehlung erstellen', prompt: 'Erstelle eine Kundenempfehlung' }
+                        ],
+                        communication: [
+                            { text: 'Follow-up E-Mail', prompt: 'Erstelle eine Follow-up E-Mail für einen Neukunden' },
+                            { text: 'Angebot senden', prompt: 'Verfasse eine E-Mail mit Versicherungsangebot' },
+                            { text: 'Terminbestätigung', prompt: 'Erstelle eine Terminbestätigungs-E-Mail' }
+                        ],
+                        marketing: [
+                            { text: 'LinkedIn Post', prompt: 'Erstelle einen LinkedIn-Post über Versicherungstipps' },
+                            { text: 'Newsletter', prompt: 'Schreibe einen Newsletter für Kunden' },
+                            { text: 'Social Media Plan', prompt: 'Erstelle einen Wochenplan für Social Media' }
+                        ]
+                    };
+                    return actions[this.currentMode] || [];
+                },
+                
+                async sendMessage() {
+                    if (!this.currentMessage.trim() || this.isTyping) return;
+                    
+                    const userMessage = this.currentMessage;
+                    this.addMessage('user', userMessage);
+                    this.currentMessage = '';
+                    this.isTyping = true;
+                    
+                    try {
+                        const response = await fetch('/communicate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                message: userMessage,
+                                mode: this.currentMode,
+                                language: 'de'
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        this.addMessage('ai', data.response || 'Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten.');
+                    } catch (error) {
+                        this.addMessage('ai', 'Es gab einen Fehler. Bitte versuchen Sie es erneut.');
+                        console.error('Error:', error);
+                    } finally {
+                        this.isTyping = false;
+                    }
+                },
+                
+                sendQuickMessage(message) {
+                    this.currentMessage = message;
+                    this.sendMessage();
+                },
+                
+                addMessage(type, content) {
+                    this.messages.push({
+                        id: Date.now(),
+                        type: type,
+                        content: content,
+                        timestamp: new Date().toLocaleTimeString('de-DE', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        })
+                    });
+                },
+                
+                handleFileUpload(event) {
+                    const files = Array.from(event.target.files);
+                    if (files.length > 0) {
+                        const fileNames = files.map(f => f.name).join(', ');
+                        this.addMessage('system', `📎 Dateien hochgeladen: ${fileNames}`);
+                        this.sendQuickMessage(`Analysiere die hochgeladenen Dateien: ${fileNames}`);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html> 
