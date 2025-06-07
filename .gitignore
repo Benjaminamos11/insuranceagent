@@ -1,6 +1,151 @@
+# Environment and Configuration Files
+.env
+.env.local
+.env.development
+.env.production
+config_swiss_insurance.env
+*.env
+
+# API Keys and Secrets
+api_keys/
+credentials/
+secrets/
+*.key
+*.pem
+*.p12
+
+# User Data and Databases
+user_data/
+*.db
+*.sqlite
+*.sqlite3
+database/
+
+# Logs
+logs/
+*.log
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# User uploads and generated files
+uploads/
+generated/
+output/
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Memory and knowledge files (contains conversation data)
+memory/
+knowledge/work_logs/
+
+# Test files
+test_output/
+*.test
+
+# Node modules (if any)
+node_modules/
+
+# Docker
+docker-compose.override.yml
+
+# SSL Certificates
+*.crt
+*.cert
+*.ca-bundle
+
+# Payment processing files
+stripe/
+payment_logs/
+
+# Email templates with real customer data
+email_logs/
+sent_emails/
+
+# Cache
+.cache/
+cache/
+*.cache
+
+# MCP Server data
+mcp_data/
+mcp_logs/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
 # Ignore common unwanted files globally
 **/.DS_Store
-**/.env
 **/__pycache__/
 **/.conda/
 
@@ -15,9 +160,6 @@ docker/run/agent-zero/
 
 # Ignore git internal files (for bundler)
 .git/
-
-# Ignore all contents of the virtual environment directory
-.venv/
 
 # Handle bundle directory
 bundle/*/

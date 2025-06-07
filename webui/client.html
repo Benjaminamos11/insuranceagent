@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Schweizer Versicherung KI-Assistent</title>
+    <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+    <link rel="stylesheet" href="css/client-bright.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+</head>
+
+<body class="bright-mode" x-data="clientApp()">
+    <div class="client-container">
+        <!-- Heller, freundlicher Header -->
+        <header class="client-header">
+            <div class="brand-section">
+                <div class="logo-circle">🛡️</div>
+                <div class="brand-text">
+                    <h1>Versicherung KI-Berater</h1>
+                    <p>Ihr persönlicher Versicherungsexperte</p>
+                </div>
+            </div>
+            <div class="trust-badges">
+                <span class="badge finma">FINMA Konform</span>
+                <span class="badge swiss">🇨🇭 Schweiz</span>
+            </div>
+        </header>
+
+        <!-- Chat Bereich -->
+        <div class="chat-container">
+            <div id="chat-history" class="client-chat-history">
+                <!-- Willkommensnachricht -->
+                <div class="welcome-message" x-show="messages.length === 0">
+                    <div class="welcome-avatar">👋</div>
+                    <h2>Hallo! Wie kann ich Ihnen bei Ihren Versicherungen helfen?</h2>
+                    <p class="welcome-subtitle">Ich bin Ihr KI-Versicherungsexperte und helfe Ihnen gerne weiter.</p>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-btn primary" @click="sendQuickMessage('Ich möchte verschiedene Versicherungstarife vergleichen. Können Sie mir dabei helfen?')">
+                            📊 Tarife vergleichen
+                        </button>
+                        <button class="quick-btn secondary" @click="sendQuickMessage('Ich benötige eine Versicherungsofferte. Welche Informationen brauchen Sie von mir?')">
+                            💰 Offerte erhalten
+                        </button>
+                        <button class="quick-btn secondary" @click="sendQuickMessage('Können Sie mir die verschiedenen Versicherungsarten in der Schweiz erklären?')">
+                            📖 Deckung erklären
+                        </button>
+                        <button class="quick-btn secondary" @click="sendQuickMessage('Helfen Sie mir, die beste Versicherungsoption basierend auf meinen Bedürfnissen zu finden.')">
+                            🎯 Beste Option finden
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="messages-container">
+                    <template x-for="message in messages" :key="message.id">
+                        <div :class="message.type === 'user' ? 'user-message' : 'agent-message'" x-text="message.content"></div>
+                    </template>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div x-show="isTyping" class="typing-indicator">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span>KI denkt nach...</span>
+                </div>
+            </div>
+
+            <!-- Eingabebereich -->
+            <div class="client-input-section">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <textarea 
+                            x-model="currentMessage"
+                            @keydown.enter.prevent="sendMessage()"
+                            placeholder="Stellen Sie mir Ihre Versicherungsfrage..."
+                            rows="1"
+                            maxlength="1000">
+                        </textarea>
+                        <button @click="sendMessage()" :disabled="!currentMessage.trim() || isTyping" class="send-button">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <span class="confidence-indicator">
+                        🔒 Sicher & Vertraulich | 🇨🇭 Schweizer Regulierung | ✨ KI-Powered
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Modal -->
+        <div x-show="showRegistration" class="modal-overlay" @click="showRegistration = false">
+            <div class="registration-modal" @click.stop>
+                <h3>Registrierung für Premium-Features</h3>
+                <p>Erhalten Sie Zugang zu erweiterten Versicherungsanalysen und personalisierten Empfehlungen.</p>
+                
+                <div class="pricing-plans">
+                    <div class="plan basic">
+                        <h4>Basic</h4>
+                        <div class="price">CHF 29/Monat</div>
+                        <ul>
+                            <li>100 KI-Nachrichten</li>
+                            <li>Grundlegende Vergleiche</li>
+                            <li>E-Mail-Vorlagen</li>
+                        </ul>
+                        <button @click="selectPlan('basic')" class="plan-button">Wählen</button>
+                    </div>
+                    
+                    <div class="plan professional featured">
+                        <h4>Professional</h4>
+                        <div class="price">CHF 79/Monat</div>
+                        <ul>
+                            <li>500 KI-Nachrichten</li>
+                            <li>Erweiterte Analysen</li>
+                            <li>Alle Tools</li>
+                            <li>Priority Support</li>
+                        </ul>
+                        <button @click="selectPlan('professional')" class="plan-button">Wählen</button>
+                    </div>
+                    
+                    <div class="plan enterprise">
+                        <h4>Enterprise</h4>
+                        <div class="price">CHF 199/Monat</div>
+                        <ul>
+                            <li>Unbegrenzte Nachrichten</li>
+                            <li>Custom Branding</li>
+                            <li>API Zugang</li>
+                            <li>Dedicated Support</li>
+                        </ul>
+                        <button @click="selectPlan('enterprise')" class="plan-button">Wählen</button>
+                    </div>
+                </div>
+                
+                <button @click="showRegistration = false" class="close-modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function clientApp() {
+            return {
+                messages: [],
+                currentMessage: '',
+                isTyping: false,
+                showRegistration: false,
+                messageCount: 0,
+                maxFreeMessages: 5,
+
+                init() {
+                    this.addMessage('agent', 'Hallo! Ich bin Ihr KI-Versicherungsberater. Wie kann ich Ihnen heute helfen?');
+                },
+
+                sendQuickMessage(message) {
+                    this.currentMessage = message;
+                    this.sendMessage();
+                },
+
+                async sendMessage() {
+                    if (!this.currentMessage.trim() || this.isTyping) return;
+
+                    // Check message limit for free users
+                    this.messageCount++;
+                    if (this.messageCount > this.maxFreeMessages) {
+                        this.showRegistration = true;
+                        return;
+                    }
+
+                    const userMessage = this.currentMessage;
+                    this.addMessage('user', userMessage);
+                    this.currentMessage = '';
+                    this.isTyping = true;
+
+                    try {
+                        const response = await fetch('/communicate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                message: userMessage,
+                                language: 'de',
+                                mode: 'insurance_expert'
+                            })
+                        });
+
+                        const data = await response.json();
+                        this.addMessage('agent', data.response || 'Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten.');
+                    } catch (error) {
+                        this.addMessage('agent', 'Es tut mir leid, es gab einen Fehler. Bitte versuchen Sie es erneut.');
+                        console.error('Error:', error);
+                    } finally {
+                        this.isTyping = false;
+                    }
+                },
+
+                addMessage(type, content) {
+                    this.messages.push({
+                        id: Date.now(),
+                        type: type,
+                        content: content,
+                        timestamp: new Date()
+                    });
+                    
+                    this.$nextTick(() => {
+                        const chatHistory = document.getElementById('chat-history');
+                        chatHistory.scrollTop = chatHistory.scrollHeight;
+                    });
+                },
+
+                selectPlan(planType) {
+                    // Redirect to payment processing
+                    window.location.href = `/payment/${planType}`;
+                }
+            }
+        }
+    </script>
+</body>
+</html> 
