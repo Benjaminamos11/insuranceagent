@@ -17,6 +17,7 @@ from python.helpers.api import ApiHandler
 from python.helpers.job_loop import run_loop
 from python.helpers.print_style import PrintStyle
 from python.helpers.defer import DeferredTask
+from python.helpers.landing_generator import LandingPageGenerator
 
 
 # Set the new timezone to 'UTC'
@@ -138,6 +139,119 @@ async def serve_index():
         version_no=gitinfo["version"],
         version_time=gitinfo["commit_time"],
     )
+
+
+# handle insurance client interface (no auth required)
+@webapp.route("/client.html", methods=["GET"])
+async def serve_client():
+    return files.read_file("./webui/client.html")
+
+
+# handle health check (no auth required)  
+@webapp.route("/health", methods=["GET"])
+async def health_check():
+    return {"status": "healthy", "service": "agent-zero-insurance"}
+
+
+# Landing page generation routes
+@webapp.route("/generate-landing", methods=["POST"])
+@requires_auth
+async def generate_landing_page():
+    """Generate insurance comparison landing page"""
+    try:
+        data = request.get_json()
+        comparison_data = data.get('comparison_data', {})
+        branding = data.get('branding', {})
+        template_style = data.get('template_style', 'modern')
+        
+        generator = LandingPageGenerator()
+        page_path = generator.generate_comparison_page(comparison_data, branding, template_style)
+        
+        # Return preview URL
+        preview_url = f"/preview-landing/{os.path.basename(page_path)}"
+        
+        return {
+            "success": True,
+            "page_path": page_path,
+            "preview_url": preview_url
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}, 500
+
+
+@webapp.route("/preview-landing/<filename>", methods=["GET"])
+async def preview_landing_page(filename):
+    """Serve generated landing page for preview"""
+    try:
+        page_path = os.path.join("generated_pages", filename)
+        if os.path.exists(page_path):
+            return files.read_file(page_path)
+        else:
+            return "Page not found", 404
+    except Exception as e:
+        return f"Error loading page: {str(e)}", 500
+
+
+@webapp.route("/deploy-landing", methods=["POST"])
+@requires_auth  
+async def deploy_landing_page():
+    """Deploy landing page to various platforms"""
+    try:
+        data = request.get_json()
+        page_path = data.get('page_path')
+        deployment_method = data.get('method', 'netlify')
+        options = data.get('options', {})
+        
+        generator = LandingPageGenerator()
+        
+        if deployment_method == 'netlify':
+            result = generator.deploy_to_netlify(page_path, options.get('site_name'))
+        elif deployment_method == 'subdomain':
+            result = generator.create_subdomain_deployment(page_path, options.get('subdomain'))
+        elif deployment_method == 'pdf':
+            pdf_path = generator.export_to_pdf(page_path)
+            result = {"success": True, "url": f"/download-pdf/{os.path.basename(pdf_path)}"}
+        else:
+            result = {"success": False, "error": "Unknown deployment method"}
+            
+        return result
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}, 500
+
+
+@webapp.route("/download-pdf/<filename>", methods=["GET"])
+async def download_pdf(filename):
+    """Download generated PDF"""
+    try:
+        pdf_path = os.path.join("generated_pages", filename)
+        if os.path.exists(pdf_path):
+            return files.read_file(pdf_path, binary=True)
+        else:
+            return "PDF not found", 404
+    except Exception as e:
+        return f"Error downloading PDF: {str(e)}", 500
+
+
+@webapp.route("/contact", methods=["POST"])
+async def handle_contact_form():
+    """Handle contact form submissions from landing pages"""
+    try:
+        data = request.get_json()
+        
+        # Here you would typically:
+        # 1. Save to database
+        # 2. Send email notification
+        # 3. Send confirmation email to customer
+        
+        # For now, just log the contact
+        PrintStyle().info(f"New contact form submission: {data.get('name')} - {data.get('email')}")
+        
+        return {"success": True, "message": "Nachricht erhalten. Wir melden uns bald bei Ihnen."}
+        
+    except Exception as e:
+        return {"success": False, "error": str(e)}, 500
 
 
 def run():

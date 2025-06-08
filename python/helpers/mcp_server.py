@@ -4,7 +4,37 @@ from typing import Annotated, Literal, Union
 from urllib.parse import urlparse
 from openai import BaseModel
 from pydantic import Field
-from fastmcp import FastMCP
+
+# Try to import FastMCP, but handle gracefully if not available (Python 3.9 compatibility)
+try:
+    from fastmcp import FastMCP
+    from fastmcp.server.http import create_sse_app
+    FASTMCP_AVAILABLE = True
+except ImportError:
+    # Create mock classes for Python 3.9 compatibility
+    class FastMCP:
+        def __init__(self, name, instructions):
+            self.name = name
+            self.instructions = instructions
+            # Mock settings attribute
+            self.settings = type('MockSettings', (), {
+                'message_path': '/messages/',
+                'sse_path': '/sse',
+                'auth': None,
+                'debug': False
+            })()
+            self._auth_server_provider = None
+            self._additional_http_routes = []
+            
+        def tool(self, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+    
+    def create_sse_app(*args, **kwargs):
+        return None
+    
+    FASTMCP_AVAILABLE = False
 
 from agent import AgentContext, AgentContextType, UserMessage
 from python.helpers.persist_chat import save_tmp_chat, remove_chat
@@ -15,7 +45,6 @@ from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Receive, Scope, Send
-from fastmcp.server.http import create_sse_app
 from starlette.requests import Request
 import threading
 
@@ -92,43 +121,43 @@ async def send_message(
             title="message",
         ),
     ],
-    attachments: (
+    attachments: Union[
         Annotated[
             list[str],
             Field(
                 description="Optional: A list of attachments (file paths or web urls) to send to the remote Agent Zero Instance with the message. Default: Empty list",
                 title="attachments",
             ),
-        ]
-        | None
-    ) = None,
-    chat_id: (
+        ],
+        None
+    ] = None,
+    chat_id: Union[
         Annotated[
             str,
             Field(
                 description="Optional: ID of the chat. Used to continue a chat. This value is returned in response to sending previous message. Default: Empty string",
                 title="chat_id",
             ),
-        ]
-        | None
-    ) = None,
-    persistent_chat: (
+        ],
+        None
+    ] = None,
+    persistent_chat: Union[
         Annotated[
             bool,
             Field(
                 description="Optional: Whether to use a persistent chat. If true, the chat will be saved and can be continued later. Default: False.",
                 title="persistent_chat",
             ),
-        ]
-        | None
-    ) = None,
+        ],
+        None
+    ] = None,
 ) -> Annotated[
     Union[ToolResponse, ToolError],
     Field(
         description="The response from the remote Agent Zero Instance", title="response"
     ),
 ]:
-    context: AgentContext | None = None
+    context: Union[AgentContext, None] = None
     if chat_id:
         context = AgentContext.get(chat_id)
         if not context:
@@ -220,7 +249,7 @@ async def finish_chat(
 
 
 async def _run_chat(
-    context: AgentContext, message: str, attachments: list[str] | None = None
+    context: AgentContext, message: str, attachments: Union[list[str], None] = None
 ):
     try:
         _PRINTER.print("MCP Chat message received")

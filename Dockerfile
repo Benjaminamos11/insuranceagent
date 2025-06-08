@@ -5,9 +5,11 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
     curl \
-    build-essential \
+    git \
+    gcc \
+    g++ \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -29,22 +31,19 @@ RUN pip install --no-cache-dir \
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p work_dir logs templates assets config
+RUN mkdir -p logs data memory
 
-# Set permissions
-RUN chmod +x run_ui.py
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV PORT=50001
 
 # Expose port
-EXPOSE 8080
+EXPOSE 50001
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:50001/health || exit 1
 
-# Environment variables
-ENV PYTHONPATH=/app
-ENV WEB_UI_PORT=8080
-ENV WEB_UI_HOST=0.0.0.0
-
-# Start application
-CMD ["python3", "run_ui.py", "--host", "0.0.0.0", "--port", "8080"] 
+# Run the application
+CMD ["python", "run_ui.py"] 

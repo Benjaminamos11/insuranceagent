@@ -3,58 +3,506 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Schweizer Versicherung KI-Assistent</title>
+    <title>Versicherungsberater KI - Ihr digitaler Assistent</title>
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
-    <link rel="stylesheet" href="css/client-bright.css">
+    <style>
+        :root {
+            /* Minimal Color Palette - Only gradient for highlights */
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-soft: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            
+            /* Neutrals */
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            /* Typography */
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .client-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--white);
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        /* Header */
+        .client-header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--white);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .brand-text p {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .trust-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-200);
+        }
+
+        /* Chat Area */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 2rem;
+            scroll-behavior: smooth;
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 3rem 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .welcome-avatar {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-message h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+        }
+
+        .welcome-subtitle {
+            color: var(--gray-600);
+            margin-bottom: 2rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .quick-btn {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+
+        .quick-btn:hover {
+            background: var(--gradient-soft);
+            border-color: transparent;
+            transform: translateY(-1px);
+        }
+
+        .quick-btn.primary {
+            background: var(--gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .quick-btn.primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Messages */
+        .messages-container {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .user-message .message-content {
+            background: var(--gradient);
+            color: white;
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .agent-message .message-content {
+            background: var(--gray-100);
+            color: var(--gray-900);
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px 18px 18px 4px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .agent-message .message-avatar {
+            background: var(--gradient);
+            color: white;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--gray-400);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Input Section */
+        .input-section {
+            padding: 1rem 2rem 2rem;
+            border-top: 1px solid var(--gray-200);
+            background: var(--white);
+        }
+
+        .input-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            align-items: end;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 0.75rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--gray-400);
+        }
+
+        .input-wrapper textarea {
+            flex: 1;
+            border: none;
+            background: none;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: 120px;
+            min-height: 20px;
+        }
+
+        .send-button {
+            background: var(--gradient);
+            border: none;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        .send-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .input-footer {
+            text-align: center;
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+        }
+
+        .pricing-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .plan {
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .plan:hover {
+            transform: translateY(-2px);
+        }
+
+        .plan.featured {
+            border-color: transparent;
+            background: var(--gradient-soft);
+            position: relative;
+        }
+
+        .plan h4 {
+            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+        }
+
+        .price {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .plan ul {
+            list-style: none;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .plan li {
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-button {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+
+        .plan-button:hover {
+            opacity: 0.9;
+        }
+
+        .close-modal {
+            background: none;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            color: var(--gray-600);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .client-header {
+                padding: 1rem;
+            }
+            
+            .chat-history {
+                padding: 1rem;
+            }
+            
+            .input-section {
+                padding: 1rem;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
 </head>
 
-<body class="bright-mode" x-data="clientApp()">
+<body x-data="insuranceApp()">
     <div class="client-container">
-        <!-- Heller, freundlicher Header -->
+        <!-- Minimal Header -->
         <header class="client-header">
             <div class="brand-section">
-                <div class="logo-circle">🛡️</div>
+                <div class="logo">🛡️</div>
                 <div class="brand-text">
-                    <h1>Versicherung KI-Berater</h1>
-                    <p>Ihr persönlicher Versicherungsexperte</p>
+                    <h1>Versicherungsberater KI</h1>
+                    <p>Ihr digitaler Assistent</p>
                 </div>
             </div>
             <div class="trust-badges">
-                <span class="badge finma">FINMA Konform</span>
-                <span class="badge swiss">🇨🇭 Schweiz</span>
+                <span class="badge">FINMA Konform</span>
+                <span class="badge">🇨🇭 Schweiz</span>
             </div>
         </header>
 
-        <!-- Chat Bereich -->
+        <!-- Chat Area -->
         <div class="chat-container">
-            <div id="chat-history" class="client-chat-history">
-                <!-- Willkommensnachricht -->
+            <div class="chat-history">
+                <!-- Welcome Message -->
                 <div class="welcome-message" x-show="messages.length === 0">
                     <div class="welcome-avatar">👋</div>
-                    <h2>Hallo! Wie kann ich Ihnen bei Ihren Versicherungen helfen?</h2>
-                    <p class="welcome-subtitle">Ich bin Ihr KI-Versicherungsexperte und helfe Ihnen gerne weiter.</p>
+                    <h2>Ihr vollständiger KI-Versicherungsexperte</h2>
+                    <p class="welcome-subtitle">Zugang zu allen Agent Zero Funktionen: Datenanalyse, Web-Recherche, Dokumentenerstellung und mehr.</p>
                     
                     <div class="quick-actions">
-                        <button class="quick-btn primary" @click="sendQuickMessage('Ich möchte verschiedene Versicherungstarife vergleichen. Können Sie mir dabei helfen?')">
-                            📊 Tarife vergleichen
+                        <button class="quick-btn primary" @click="sendQuickMessage('Erstelle einen kompletten Versicherungsvergleich mit 3 Angeboten und generiere eine professionelle Landing Page für den Kunden. Zeige mir den Workflow.')">
+                            🎨 Landing Page Workflow
                         </button>
-                        <button class="quick-btn secondary" @click="sendQuickMessage('Ich benötige eine Versicherungsofferte. Welche Informationen brauchen Sie von mir?')">
-                            💰 Offerte erhalten
+                        <button class="quick-btn" @click="sendQuickMessage('Recherchiere aktuelle Versicherungstarife online und erstelle eine detaillierte Vergleichstabelle mit Empfehlungen.')">
+                            🌐 Live-Tarifrecherche
                         </button>
-                        <button class="quick-btn secondary" @click="sendQuickMessage('Können Sie mir die verschiedenen Versicherungsarten in der Schweiz erklären?')">
-                            📖 Deckung erklären
+                        <button class="quick-btn" @click="sendQuickMessage('Analysiere Versicherungsdokumente und erstelle einen FINMA-konformen Beratungsreport.')">
+                            🔍 Dokumentenanalyse
                         </button>
-                        <button class="quick-btn secondary" @click="sendQuickMessage('Helfen Sie mir, die beste Versicherungsoption basierend auf meinen Bedürfnissen zu finden.')">
-                            🎯 Beste Option finden
+                        <button class="quick-btn" @click="sendQuickMessage('Erstelle eine professionelle Kundenpräsentation mit Vergleichstabellen, Empfehlungen und bereitstellungsfertiger Landing Page.')">
+                            📊 Kundenpräsentation
                         </button>
                     </div>
                 </div>
 
-                <!-- Chat Messages -->
+                <!-- Messages -->
                 <div class="messages-container">
                     <template x-for="message in messages" :key="message.id">
-                        <div :class="message.type === 'user' ? 'user-message' : 'agent-message'" x-text="message.content"></div>
+                        <div class="message" :class="message.type === 'user' ? 'user-message' : 'agent-message'">
+                            <div x-show="message.type === 'agent'" class="message-avatar">🤖</div>
+                            <div class="message-content" x-html="formatMessage(message.content)"></div>
+                        </div>
                     </template>
                 </div>
 
@@ -65,20 +513,20 @@
                         <span></span>
                         <span></span>
                     </div>
-                    <span>KI denkt nach...</span>
+                    <span>Agent Zero arbeitet...</span>
                 </div>
             </div>
 
-            <!-- Eingabebereich -->
-            <div class="client-input-section">
+            <!-- Input Section -->
+            <div class="input-section">
                 <div class="input-container">
                     <div class="input-wrapper">
                         <textarea 
                             x-model="currentMessage"
-                            @keydown.enter.prevent="sendMessage()"
-                            placeholder="Stellen Sie mir Ihre Versicherungsfrage..."
+                            @keydown.enter.prevent="if (!$event.shiftKey) sendMessage()"
+                            placeholder="Stellen Sie mir jede Frage - ich habe Zugang zu allen Agent Zero Funktionen..."
                             rows="1"
-                            maxlength="1000">
+                            maxlength="2000">
                         </textarea>
                         <button @click="sendMessage()" :disabled="!currentMessage.trim() || isTyping" class="send-button">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -86,53 +534,51 @@
                             </svg>
                         </button>
                     </div>
-                </div>
-                <div class="input-footer">
-                    <span class="confidence-indicator">
-                        🔒 Sicher & Vertraulich | 🇨🇭 Schweizer Regulierung | ✨ KI-Powered
-                    </span>
+                    <div class="input-footer">
+                        🔒 Sicher & Vertraulich | 🇨🇭 FINMA Regulierung | 🤖 Vollständige Agent Zero Integration
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Registration Modal -->
         <div x-show="showRegistration" class="modal-overlay" @click="showRegistration = false">
-            <div class="registration-modal" @click.stop>
-                <h3>Registrierung für Premium-Features</h3>
-                <p>Erhalten Sie Zugang zu erweiterten Versicherungsanalysen und personalisierten Empfehlungen.</p>
+            <div class="modal" @click.stop>
+                <h3>Erweiterte Funktionen freischalten</h3>
+                <p>Unbegrenzter Zugang zu allen Agent Zero Funktionen für Versicherungsexperten.</p>
                 
                 <div class="pricing-plans">
-                    <div class="plan basic">
+                    <div class="plan">
                         <h4>Basic</h4>
                         <div class="price">CHF 29/Monat</div>
                         <ul>
-                            <li>100 KI-Nachrichten</li>
-                            <li>Grundlegende Vergleiche</li>
-                            <li>E-Mail-Vorlagen</li>
+                            <li>100 Nachrichten/Monat</li>
+                            <li>Standard-Analysen</li>
+                            <li>E-Mail Support</li>
                         </ul>
                         <button @click="selectPlan('basic')" class="plan-button">Wählen</button>
                     </div>
                     
-                    <div class="plan professional featured">
+                    <div class="plan featured">
                         <h4>Professional</h4>
                         <div class="price">CHF 79/Monat</div>
                         <ul>
-                            <li>500 KI-Nachrichten</li>
-                            <li>Erweiterte Analysen</li>
-                            <li>Alle Tools</li>
-                            <li>Priority Support</li>
+                            <li>500 Nachrichten/Monat</li>
+                            <li>Alle Agent Zero Tools</li>
+                            <li>Prioritäts-Support</li>
+                            <li>Dokumentenerstellung</li>
                         </ul>
-                        <button @click="selectPlan('professional')" class="plan-button">Wählen</button>
+                        <button @click="selectPlan('professional')" class="plan-button">Empfohlen</button>
                     </div>
                     
-                    <div class="plan enterprise">
+                    <div class="plan">
                         <h4>Enterprise</h4>
                         <div class="price">CHF 199/Monat</div>
                         <ul>
                             <li>Unbegrenzte Nachrichten</li>
-                            <li>Custom Branding</li>
-                            <li>API Zugang</li>
+                            <li>Custom Integrationen</li>
                             <li>Dedicated Support</li>
+                            <li>API Zugang</li>
                         </ul>
                         <button @click="selectPlan('enterprise')" class="plan-button">Wählen</button>
                     </div>
@@ -144,7 +590,7 @@
     </div>
 
     <script>
-        function clientApp() {
+        function insuranceApp() {
             return {
                 messages: [],
                 currentMessage: '',
@@ -154,12 +600,79 @@
                 maxFreeMessages: 5,
 
                 init() {
-                    this.addMessage('agent', 'Hallo! Ich bin Ihr KI-Versicherungsberater. Wie kann ich Ihnen heute helfen?');
+                    this.addMessage('agent', 'Hallo! Ich bin Ihr vollständiger KI-Versicherungsexperte mit Zugang zu allen Agent Zero Funktionen. Ich kann Daten analysieren, im Web recherchieren, Dokumente erstellen, Code ausführen und vieles mehr. Wie kann ich Ihnen helfen?');
                 },
 
                 sendQuickMessage(message) {
                     this.currentMessage = message;
                     this.sendMessage();
+                },
+
+                async generateLandingPage(comparisonData, branding) {
+                    try {
+                        const response = await fetch('/generate-landing', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                comparison_data: comparisonData,
+                                branding: branding,
+                                template_style: 'modern'
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            this.addMessage('agent', `✅ Landing Page erfolgreich generiert! 
+                            
+Vorschau: <a href="${result.preview_url}" target="_blank">Hier ansehen</a>
+
+Sie können die Seite jetzt:
+• Als Subdomain bereitstellen (z.B. kunde.ihrefirma.ch)
+• Auf Netlify veröffentlichen 
+• Als PDF exportieren
+
+Möchten Sie die Seite jetzt bereitstellen?`);
+                            
+                            return result;
+                        } else {
+                            this.addMessage('agent', `❌ Fehler bei der Landing Page Erstellung: ${result.error}`);
+                        }
+                    } catch (error) {
+                        this.addMessage('agent', '❌ Verbindungsfehler bei der Landing Page Erstellung.');
+                        console.error('Landing page error:', error);
+                    }
+                },
+
+                async deployLandingPage(pagePath, method, options) {
+                    try {
+                        const response = await fetch('/deploy-landing', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                page_path: pagePath,
+                                method: method,
+                                options: options
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            this.addMessage('agent', `🚀 Landing Page erfolgreich bereitgestellt!
+                            
+🔗 **URL:** <a href="${result.url}" target="_blank">${result.url}</a>
+
+Die Seite ist jetzt live und kann an Ihre Kunden gesendet werden.`);
+                        } else {
+                            this.addMessage('agent', `❌ Fehler bei der Bereitstellung: ${result.error}`);
+                        }
+                        
+                        return result;
+                    } catch (error) {
+                        this.addMessage('agent', '❌ Verbindungsfehler bei der Bereitstellung.');
+                        console.error('Deployment error:', error);
+                    }
                 },
 
                 async sendMessage() {
@@ -178,22 +691,64 @@
                     this.isTyping = true;
 
                     try {
-                        const response = await fetch('/communicate', {
+                        // Enhanced prompt for Swiss Insurance Assistant
+                        const enhancedPrompt = `Als Schweizer Versicherungsexperte mit Zugang zu allen Agent Zero Funktionen:
+
+KUNDENWUNSCH: ${userMessage}
+
+Verfügbare Spezialfunktionen:
+🔍 Dokumente analysieren und vergleichen
+🎨 Professionelle Landing Pages generieren 
+🚀 Automatische Bereitstellung (Subdomain/Netlify/PDF)
+📊 Live-Marktrecherche und Tarifvergleiche
+📧 E-Mail-Erstellung und Kundenkommunikation
+📈 Datenanalyse und Visualisierung
+
+Wenn der Kunde Landing Pages benötigt, erkläre den Workflow:
+1. Versicherungsvergleich erstellen
+2. Branding-Informationen sammeln (Firmenname, Farben, Logo, Kontakt)
+3. Landing Page generieren
+4. Bereitstellungsoptionen anbieten
+
+Antworte professionell auf Schweizerdeutsch/Hochdeutsch und nutze alle verfügbaren Agent Zero Tools für optimale Ergebnisse.`;
+
+                        // Connect directly to Agent Zero's message API for full functionality
+                        const response = await fetch('/message', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                                message: userMessage,
-                                language: 'de',
-                                mode: 'insurance_expert'
+                                content: enhancedPrompt,
+                                attachments: [],
+                                context_type: 'insurance_assistant'
                             })
                         });
 
                         const data = await response.json();
-                        this.addMessage('agent', data.response || 'Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten.');
+                        
+                        if (data.response) {
+                            let responseMessage = data.response;
+                            
+                            // Check if response suggests landing page creation
+                            if (responseMessage.includes('Landing Page') || responseMessage.includes('Vergleichsseite')) {
+                                responseMessage += `
+
+💡 **Tipp:** Ich kann automatisch professionelle Landing Pages für Ihre Versicherungsvergleiche erstellen und bereitstellen. Sagen Sie einfach:
+
+• "Erstelle eine Landing Page für [Kundenname]"
+• "Generiere eine Vergleichsseite" 
+• "Bereitstellung auf Subdomain"
+
+Möchten Sie diesen Service nutzen?`;
+                            }
+                            
+                            this.addMessage('agent', responseMessage);
+                        } else {
+                            this.addMessage('agent', 'Anfrage erfolgreich verarbeitet. Wie kann ich Ihnen weiter helfen?');
+                        }
                     } catch (error) {
-                        this.addMessage('agent', 'Es tut mir leid, es gab einen Fehler. Bitte versuchen Sie es erneut.');
+                        this.addMessage('agent', 'Es tut mir leid, die Verbindung zu Agent Zero konnte nicht hergestellt werden. Bitte versuchen Sie es erneut.');
                         console.error('Error:', error);
                     } finally {
                         this.isTyping = false;
@@ -209,9 +764,18 @@
                     });
                     
                     this.$nextTick(() => {
-                        const chatHistory = document.getElementById('chat-history');
+                        const chatHistory = document.querySelector('.chat-history');
                         chatHistory.scrollTop = chatHistory.scrollHeight;
                     });
+                },
+
+                formatMessage(content) {
+                    // Basic markdown-like formatting for Agent Zero responses
+                    return content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>')
+                        .replace(/```(.*?)```/gs, '<pre style="background: var(--gray-100); padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;"><code>$1</code></pre>');
                 },
 
                 selectPlan(planType) {
