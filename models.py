@@ -9,23 +9,54 @@ from langchain_openai import (
     AzureOpenAIEmbeddings,
     AzureOpenAI,
 )
-from langchain_community.llms.ollama import Ollama
-from langchain_ollama import ChatOllama
-from langchain_community.embeddings import OllamaEmbeddings
+# Safe imports with fallbacks for optional dependencies
+try:
+    from langchain_community.llms.ollama import Ollama
+    from langchain_community.embeddings import OllamaEmbeddings
+except ImportError:
+    Ollama = None
+    OllamaEmbeddings = None
+
+try:
+    from langchain_ollama import ChatOllama
+except ImportError:
+    ChatOllama = None
+
 from langchain_anthropic import ChatAnthropic
-from langchain_groq import ChatGroq
-from langchain_huggingface import (
-    HuggingFaceEmbeddings,
-    ChatHuggingFace,
-    HuggingFaceEndpoint,
-)
-from langchain_google_genai import (
-    ChatGoogleGenerativeAI,
-    HarmBlockThreshold,
-    HarmCategory,
-    embeddings as google_embeddings,
-)
-from langchain_mistralai import ChatMistralAI
+
+try:
+    from langchain_groq import ChatGroq
+except ImportError:
+    ChatGroq = None
+
+try:
+    from langchain_huggingface import (
+        HuggingFaceEmbeddings,
+        ChatHuggingFace,
+        HuggingFaceEndpoint,
+    )
+except ImportError:
+    HuggingFaceEmbeddings = None
+    ChatHuggingFace = None
+    HuggingFaceEndpoint = None
+
+try:
+    from langchain_google_genai import (
+        ChatGoogleGenerativeAI,
+        HarmBlockThreshold,
+        HarmCategory,
+        embeddings as google_embeddings,
+    )
+except ImportError:
+    ChatGoogleGenerativeAI = None
+    HarmBlockThreshold = None
+    HarmCategory = None
+    google_embeddings = None
+
+try:
+    from langchain_mistralai import ChatMistralAI
+except ImportError:
+    ChatMistralAI = None
 
 # from pydantic.v1.types import SecretStr
 from python.helpers import dotenv, runtime
@@ -116,6 +147,8 @@ def get_ollama_chat(
     num_ctx=8192,
     **kwargs,
 ):
+    if ChatOllama is None:
+        raise ImportError("langchain_ollama not available. Install with: pip install langchain-ollama")
     if not base_url:
         base_url = get_ollama_base_url()
     return ChatOllama(

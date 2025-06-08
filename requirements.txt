@@ -1,43 +1,34 @@
-# Agent Zero Core Dependencies
-langchain==0.3.13
-langchain-openai==0.2.10
-langchain-anthropic==0.3.15
-langchain-google-genai==2.0.5
-langchain-community==0.3.13
-langchain-ollama==0.3.3
-langchain-groq==0.3.2
-openai==1.57.2
-anthropic==0.36.1
-google-generativeai==0.8.3
-python-dotenv==1.0.1
-requests==2.32.3
-aiohttp==3.11.10
-websockets==13.1
-psutil==6.1.0
+# Minimal Core Dependencies for Railway Deployment
 flask==3.1.0
 flask-basicauth==0.2.0
 werkzeug==3.1.3
+python-dotenv==1.0.1
+requests==2.32.3
+aiohttp==3.11.10
 pydantic==2.10.3
 colorama==0.4.6
-tiktoken==0.8.0
-beautifulsoup4==4.12.3
-packaging==24.2
-pillow==11.0.0
 jinja2==3.1.4
+packaging==24.2
+
+# Essential AI Dependencies
+langchain==0.3.13
+langchain-core==0.3.27
+langchain-openai==0.2.10
+langchain-anthropic==0.3.15
+langchain-community==0.3.13
+openai==1.57.2
+anthropic==0.36.1
+
+# Basic Utilities
+beautifulsoup4==4.12.3
+pillow==11.0.0
 markdown==3.7
-
-# FastMCP (Python 3.10+ only)
-fastmcp>=2.0.0; python_version>="3.10"
-
-# Swiss Insurance Agent Dependencies
 nest_asyncio==1.6.0
-GitPython==3.1.44
-
-# Web Framework Dependencies
-python-multipart==0.0.17
-
-# Basic Data Processing
-numpy==1.26.4
-
-# Essential Extensions
 typing-extensions==4.12.2
+
+# Try optional heavy dependencies only if build succeeds
+tiktoken==0.8.0
+
+# Additional lightweight dependencies
+websockets==13.1
+psutil==6.1.0
