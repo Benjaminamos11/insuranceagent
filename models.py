@@ -1,70 +1,17 @@
+"""
+Simplified models.py for Railway deployment
+This version uses direct API calls instead of langchain to avoid dependency issues
+"""
+
 from enum import Enum
 import os
-from typing import Any
-from langchain_openai import (
-    ChatOpenAI,
-    OpenAI,
-    OpenAIEmbeddings,
-    AzureChatOpenAI,
-    AzureOpenAIEmbeddings,
-    AzureOpenAI,
-)
-# Safe imports with fallbacks for optional dependencies
-try:
-    from langchain_community.llms.ollama import Ollama
-    from langchain_community.embeddings import OllamaEmbeddings
-except ImportError:
-    Ollama = None
-    OllamaEmbeddings = None
+import json
+import requests
+from typing import Any, Optional
+from python.helpers import dotenv
 
-try:
-    from langchain_ollama import ChatOllama
-except ImportError:
-    ChatOllama = None
-
-from langchain_anthropic import ChatAnthropic
-
-try:
-    from langchain_groq import ChatGroq
-except ImportError:
-    ChatGroq = None
-
-try:
-    from langchain_huggingface import (
-        HuggingFaceEmbeddings,
-        ChatHuggingFace,
-        HuggingFaceEndpoint,
-    )
-except ImportError:
-    HuggingFaceEmbeddings = None
-    ChatHuggingFace = None
-    HuggingFaceEndpoint = None
-
-try:
-    from langchain_google_genai import (
-        ChatGoogleGenerativeAI,
-        HarmBlockThreshold,
-        HarmCategory,
-        embeddings as google_embeddings,
-    )
-except ImportError:
-    ChatGoogleGenerativeAI = None
-    HarmBlockThreshold = None
-    HarmCategory = None
-    google_embeddings = None
-
-try:
-    from langchain_mistralai import ChatMistralAI
-except ImportError:
-    ChatMistralAI = None
-
-# from pydantic.v1.types import SecretStr
-from python.helpers import dotenv, runtime
-from python.helpers.dotenv import load_dotenv
-from python.helpers.rate_limiter import RateLimiter
-
-# environment variables
-load_dotenv()
+# Load environment variables
+dotenv.load_dotenv()
 
 
 class ModelType(Enum):
@@ -74,393 +21,171 @@ class ModelType(Enum):
 
 class ModelProvider(Enum):
     ANTHROPIC = "Anthropic"
-    CHUTES = "Chutes"
-    DEEPSEEK = "DeepSeek"
-    GOOGLE = "Google"
-    GROQ = "Groq"
-    HUGGINGFACE = "HuggingFace"
-    LMSTUDIO = "LM Studio"
-    MISTRALAI = "Mistral AI"
-    OLLAMA = "Ollama"
     OPENAI = "OpenAI"
-    OPENAI_AZURE = "OpenAI Azure"
-    OPENROUTER = "OpenRouter"
-    SAMBANOVA = "Sambanova"
     OTHER = "Other"
 
 
-rate_limiters: dict[str, RateLimiter] = {}
+class SimpleChat:
+    """Simple chat wrapper for direct API calls"""
+    
+    def __init__(self, provider: str, model: str, api_key: str):
+        self.provider = provider
+        self.model = model
+        self.api_key = api_key
+    
+    def invoke(self, messages):
+        """Simple invoke method for compatibility"""
+        if self.provider == "openai":
+            return self._call_openai(messages)
+        elif self.provider == "anthropic":
+            return self._call_anthropic(messages)
+        else:
+            return SimpleResponse("Model not available in simplified mode")
+    
+    def _call_openai(self, messages):
+        try:
+            import openai
+            client = openai.OpenAI(api_key=self.api_key)
+            
+            # Convert to OpenAI format
+            if isinstance(messages, str):
+                messages = [{"role": "user", "content": messages}]
+            elif hasattr(messages, 'content'):
+                messages = [{"role": "user", "content": messages.content}]
+            
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=1000
+            )
+            
+            return SimpleResponse(response.choices[0].message.content)
+        except Exception as e:
+            return SimpleResponse(f"OpenAI error: {str(e)}")
+    
+    def _call_anthropic(self, messages):
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=self.api_key)
+            
+            # Convert to Anthropic format
+            if isinstance(messages, str):
+                content = messages
+            elif hasattr(messages, 'content'):
+                content = messages.content
+            else:
+                content = str(messages)
+            
+            response = client.messages.create(
+                model=self.model,
+                max_tokens=1000,
+                messages=[{"role": "user", "content": content}]
+            )
+            
+            return SimpleResponse(response.content[0].text)
+        except Exception as e:
+            return SimpleResponse(f"Anthropic error: {str(e)}")
 
 
-# Utility function to get API keys from environment variables
+class SimpleResponse:
+    """Simple response wrapper"""
+    
+    def __init__(self, content: str):
+        self.content = content
+    
+    def __str__(self):
+        return self.content
+
+
 def get_api_key(service):
+    """Get API key from environment"""
     return (
         dotenv.get_dotenv_value(f"API_KEY_{service.upper()}")
         or dotenv.get_dotenv_value(f"{service.upper()}_API_KEY")
-        or dotenv.get_dotenv_value(
-            f"{service.upper()}_API_TOKEN"
-        )  # Added for CHUTES_API_TOKEN
+        or os.getenv(f"API_KEY_{service.upper()}")
+        or os.getenv(f"{service.upper()}_API_KEY")
         or "None"
     )
 
 
 def get_model(type: ModelType, provider: ModelProvider, name: str, **kwargs):
-    fnc_name = f"get_{provider.name.lower()}_{type.name.lower()}"  # function name of model getter
-    model = globals()[fnc_name](name, **kwargs)  # call function by name
-    return model
-
-
-def get_rate_limiter(
-    provider: ModelProvider, name: str, requests: int, input: int, output: int
-) -> RateLimiter:
-    # get or create
-    key = f"{provider.name}\\{name}"
-    rate_limiters[key] = limiter = rate_limiters.get(key, RateLimiter(seconds=60))
-    # always update
-    limiter.limits["requests"] = requests or 0
-    limiter.limits["input"] = input or 0
-    limiter.limits["output"] = output or 0
-    return limiter
+    """Get a simple model instance"""
+    
+    if provider == ModelProvider.OPENAI:
+        api_key = get_api_key("openai")
+        return SimpleChat("openai", name, api_key)
+    
+    elif provider == ModelProvider.ANTHROPIC:
+        api_key = get_api_key("anthropic")
+        return SimpleChat("anthropic", name, api_key)
+    
+    else:
+        # Return a fallback that explains the limitation
+        class UnavailableModel:
+            def invoke(self, messages):
+                return SimpleResponse(f"Model {provider.value} not available in simplified mode. Please use OpenAI or Anthropic models.")
+        
+        return UnavailableModel()
 
 
 def parse_chunk(chunk: Any):
+    """Parse response chunks"""
     if isinstance(chunk, str):
-        content = chunk
+        return chunk
     elif hasattr(chunk, "content"):
-        content = str(chunk.content)
+        return str(chunk.content)
     else:
-        content = str(chunk)
-    return content
+        return str(chunk)
 
 
-# Ollama models
-def get_ollama_base_url():
-    return (
-        dotenv.get_dotenv_value("OLLAMA_BASE_URL")
-        or f"http://{runtime.get_local_url()}:11434"
-    )
-
-
-def get_ollama_chat(
-    model_name: str,
-    base_url=None,
-    num_ctx=8192,
-    **kwargs,
-):
-    if ChatOllama is None:
-        raise ImportError("langchain_ollama not available. Install with: pip install langchain-ollama")
-    if not base_url:
-        base_url = get_ollama_base_url()
-    return ChatOllama(
-        model=model_name,
-        base_url=base_url,
-        num_ctx=num_ctx,
-        **kwargs,
-    )
-
-
-def get_ollama_embedding(
-    model_name: str,
-    base_url=None,
-    num_ctx=8192,
-    **kwargs,
-):
-    if not base_url:
-        base_url = get_ollama_base_url()
-    return OllamaEmbeddings(
-        model=model_name, base_url=base_url, num_ctx=num_ctx, **kwargs
-    )
-
-
-# HuggingFace models
-def get_huggingface_chat(
-    model_name: str,
-    api_key=None,
-    **kwargs,
-):
-    # different naming convention here
-    if not api_key:
-        api_key = get_api_key("huggingface") or os.environ["HUGGINGFACEHUB_API_TOKEN"]
-
-    # Initialize the HuggingFaceEndpoint with the specified model and parameters
-    llm = HuggingFaceEndpoint(
-        repo_id=model_name,
-        task="text-generation",
-        do_sample=True,
-        **kwargs,
-    )
-
-    # Initialize the ChatHuggingFace with the configured llm
-    return ChatHuggingFace(llm=llm)
-
-
-def get_huggingface_embedding(model_name: str, **kwargs):
-    return HuggingFaceEmbeddings(model_name=model_name, **kwargs)
-
-
-# LM Studio and other OpenAI compatible interfaces
-def get_lmstudio_base_url():
-    return (
-        dotenv.get_dotenv_value("LM_STUDIO_BASE_URL")
-        or f"http://{runtime.get_local_url()}:1234/v1"
-    )
-
-
-def get_lmstudio_chat(
-    model_name: str,
-    base_url=None,
-    **kwargs,
-):
-    if not base_url:
-        base_url = get_lmstudio_base_url()
-    return ChatOpenAI(model_name=model_name, base_url=base_url, api_key="none", **kwargs)  # type: ignore
-
-
-def get_lmstudio_embedding(
-    model_name: str,
-    base_url=None,
-    **kwargs,
-):
-    if not base_url:
-        base_url = get_lmstudio_base_url()
-    return OpenAIEmbeddings(model=model_name, api_key="none", base_url=base_url, check_embedding_ctx_length=False, **kwargs)  # type: ignore
-
-
-# Anthropic models
-def get_anthropic_chat(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("anthropic")
-    if not base_url:
-        base_url = (
-            dotenv.get_dotenv_value("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
-        )
-    return ChatAnthropic(model_name=model_name, api_key=api_key, base_url=base_url, **kwargs)  # type: ignore
-
-
-# right now anthropic does not have embedding models, but that might change
-def get_anthropic_embedding(
-    model_name: str,
-    api_key=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("anthropic")
-    return OpenAIEmbeddings(model=model_name, api_key=api_key, **kwargs)  # type: ignore
-
-
-# OpenAI models
-def get_openai_chat(
-    model_name: str,
-    api_key=None,
-    **kwargs,
-):
+# Simple implementations for specific providers
+def get_openai_chat(model_name: str, api_key=None, **kwargs):
+    """Get OpenAI chat model"""
     if not api_key:
         api_key = get_api_key("openai")
-    return ChatOpenAI(model_name=model_name, api_key=api_key, **kwargs)  # type: ignore
+    return SimpleChat("openai", model_name, api_key)
 
 
-def get_openai_embedding(model_name: str, api_key=None, **kwargs):
+def get_anthropic_chat(model_name: str, api_key=None, **kwargs):
+    """Get Anthropic chat model"""
     if not api_key:
-        api_key = get_api_key("openai")
-    return OpenAIEmbeddings(model=model_name, api_key=api_key, **kwargs)  # type: ignore
+        api_key = get_api_key("anthropic")
+    return SimpleChat("anthropic", model_name, api_key)
 
 
-def get_openai_azure_chat(
-    deployment_name: str,
-    api_key=None,
-    azure_endpoint=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("openai_azure")
-    if not azure_endpoint:
-        azure_endpoint = dotenv.get_dotenv_value("OPENAI_AZURE_ENDPOINT")
-    return AzureChatOpenAI(deployment_name=deployment_name, api_key=api_key, azure_endpoint=azure_endpoint, **kwargs)  # type: ignore
+# Fallback functions for unsupported providers
+def get_ollama_chat(*args, **kwargs):
+    raise ImportError("Ollama not available in simplified mode")
+
+def get_groq_chat(*args, **kwargs):
+    raise ImportError("Groq not available in simplified mode")
+
+def get_huggingface_chat(*args, **kwargs):
+    raise ImportError("HuggingFace not available in simplified mode")
+
+def get_google_chat(*args, **kwargs):
+    raise ImportError("Google models not available in simplified mode")
+
+def get_mistralai_chat(*args, **kwargs):
+    raise ImportError("Mistral AI not available in simplified mode")
+
+# Embedding functions (simplified)
+def get_openai_embedding(*args, **kwargs):
+    raise ImportError("Embeddings not available in simplified mode")
+
+def get_anthropic_embedding(*args, **kwargs):
+    raise ImportError("Embeddings not available in simplified mode")
 
 
-def get_openai_azure_embedding(
-    deployment_name: str,
-    api_key=None,
-    azure_endpoint=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("openai_azure")
-    if not azure_endpoint:
-        azure_endpoint = dotenv.get_dotenv_value("OPENAI_AZURE_ENDPOINT")
-    return AzureOpenAIEmbeddings(deployment_name=deployment_name, api_key=api_key, azure_endpoint=azure_endpoint, **kwargs)  # type: ignore
+# Rate limiter placeholder
+class SimpleRateLimiter:
+    def __init__(self, seconds=60):
+        self.limits = {"requests": 0, "input": 0, "output": 0}
+    
+    def wait_if_needed(self, *args, **kwargs):
+        pass  # No rate limiting in simple mode
 
 
-# Google models
-def get_google_chat(
-    model_name: str,
-    api_key=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("google")
-    return ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key, safety_settings={HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE}, **kwargs)  # type: ignore
-
-
-def get_google_embedding(
-    model_name: str,
-    api_key=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("google")
-    return google_embeddings.GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key, **kwargs)  # type: ignore
-
-
-# Mistral models
-def get_mistralai_chat(
-    model_name: str,
-    api_key=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("mistral")
-    return ChatMistralAI(model=model_name, api_key=api_key, **kwargs)  # type: ignore
-
-
-# Groq models
-def get_groq_chat(
-    model_name: str,
-    api_key=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("groq")
-    return ChatGroq(model_name=model_name, api_key=api_key, **kwargs)  # type: ignore
-
-
-# DeepSeek models
-def get_deepseek_chat(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("deepseek")
-    if not base_url:
-        base_url = (
-            dotenv.get_dotenv_value("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
-        )
-
-    return ChatOpenAI(api_key=api_key, model=model_name, base_url=base_url, **kwargs)  # type: ignore
-
-
-# OpenRouter models
-def get_openrouter_chat(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("openrouter")
-    if not base_url:
-        base_url = (
-            dotenv.get_dotenv_value("OPEN_ROUTER_BASE_URL")
-            or "https://openrouter.ai/api/v1"
-        )
-    return ChatOpenAI(
-        api_key=api_key, # type: ignore
-        model=model_name,
-        base_url=base_url,
-        stream_usage=True,
-        model_kwargs={
-            "extra_headers": {
-                "HTTP-Referer": "https://agent-zero.ai",
-                "X-Title": "Agent Zero",
-            }
-        },
-        **kwargs,
-    )
-
-
-def get_openrouter_embedding(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("openrouter")
-    if not base_url:
-        base_url = (
-            dotenv.get_dotenv_value("OPEN_ROUTER_BASE_URL")
-            or "https://openrouter.ai/api/v1"
-        )
-    return OpenAIEmbeddings(model=model_name, api_key=api_key, base_url=base_url, **kwargs)  # type: ignore
-
-
-# Sambanova models
-def get_sambanova_chat(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    max_tokens=1024,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("sambanova")
-    if not base_url:
-        base_url = (
-            dotenv.get_dotenv_value("SAMBANOVA_BASE_URL")
-            or "https://fast-api.snova.ai/v1"
-        )
-    return ChatOpenAI(api_key=api_key, model=model_name, base_url=base_url, max_tokens=max_tokens, **kwargs)  # type: ignore
-
-
-# right now sambanova does not have embedding models, but that might change
-def get_sambanova_embedding(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("sambanova")
-    if not base_url:
-        base_url = (
-            dotenv.get_dotenv_value("SAMBANOVA_BASE_URL")
-            or "https://fast-api.snova.ai/v1"
-        )
-    return OpenAIEmbeddings(model=model_name, api_key=api_key, base_url=base_url, **kwargs)  # type: ignore
-
-
-# Other OpenAI compatible models
-def get_other_chat(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    **kwargs,
-):
-    return ChatOpenAI(api_key=api_key, model=model_name, base_url=base_url, **kwargs)  # type: ignore
-
-
-def get_other_embedding(model_name: str, api_key=None, base_url=None, **kwargs):
-    return OpenAIEmbeddings(model=model_name, api_key=api_key, base_url=base_url, **kwargs)  # type: ignore
-
-
-# Chutes models
-def get_chutes_chat(
-    model_name: str,
-    api_key=None,
-    base_url=None,
-    **kwargs,
-):
-    if not api_key:
-        api_key = get_api_key("chutes")
-    if not base_url:
-        base_url = (
-            dotenv.get_dotenv_value("CHUTES_BASE_URL") or "https://llm.chutes.ai/v1"
-        )
-    return ChatOpenAI(api_key=api_key, model=model_name, base_url=base_url, **kwargs)  # type: ignore
+def get_rate_limiter(provider: ModelProvider, name: str, requests: int, input: int, output: int):
+    """Get a simple rate limiter"""
+    return SimpleRateLimiter() 
